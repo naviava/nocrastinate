@@ -20,16 +20,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={font.className}>
+      <body className={`font.className bg-slate-800 text-gray-200`}>
         {/* <div className="min-h-screen bg-gradient-to-br from-[#172c4f] to-[#253d63] text-gray-200"> */}
-        <div
-          className="h-screen bg-cover bg-center bg-no-repeat text-gray-300"
-          style={{
-            backgroundImage: `url(${images.bgImage.src})`,
-          }}
-        >
-          <Providers>{children}</Providers>
-        </div>
+        <Providers>{children}</Providers>
+        {/* </div> */}
       </body>
     </html>
   );
