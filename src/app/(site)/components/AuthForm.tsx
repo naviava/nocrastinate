@@ -7,14 +7,15 @@ import { useRouter } from "next/navigation";
 // External packages.
 import axios from "axios";
 import toast from "react-hot-toast";
+import { useMutation } from "@tanstack/react-query";
 import { signIn, useSession } from "next-auth/react";
 import { BsGithub } from "react-icons/bs";
 import { FcGoogle } from "react-icons/fc";
 import { FieldValues, SubmitHandler, useForm } from "react-hook-form";
 
 // Components.
+import MyButton from "@/components/MyButton";
 import Input from "@/components/inputs/Input";
-import Button from "@/components/Button";
 import AuthSocialButton from "./AuthSocialButton";
 
 type Variant = "LOGIN" | "REGISTER";
@@ -27,9 +28,20 @@ const AuthForm: React.FC<AuthFormProps> = ({}) => {
   const [variant, setVariant] = useState<Variant>("LOGIN");
   const [isLoading, setIsLoading] = useState(false);
 
+  const userMutation = useMutation({
+    mutationFn: (data: FieldValues) => axios.post("/api/auth/register", data),
+    onSuccess: (_, data) => {
+      toast.success("Account created.");
+      reset();
+      signIn("credentials", data);
+    },
+    onError: () => toast.error("Something went wrong."),
+  });
+
   useEffect(() => {
+    setIsLoading(userMutation.isLoading);
     if (session?.status === "authenticated") router.push("/dashboard");
-  }, [session, router]);
+  }, [session, router, userMutation.isLoading]);
 
   const {
     register,
@@ -49,7 +61,7 @@ const AuthForm: React.FC<AuthFormProps> = ({}) => {
     []
   );
 
-  const socialAction = (action: string) => {
+  const socialAction = useCallback((action: string) => {
     setIsLoading(true);
 
     signIn(action, { redirect: false })
@@ -58,12 +70,12 @@ const AuthForm: React.FC<AuthFormProps> = ({}) => {
         if (callback?.ok && !callback.error) toast.success("Logged in.");
       })
       .finally(() => setIsLoading(false));
-  };
+  }, []);
 
   const onSubmit: SubmitHandler<FieldValues> = (data) => {
     setIsLoading(true);
 
-    if (variant === "REGISTER") axios.post("/api/auth/register", data);
+    if (variant === "REGISTER") userMutation.mutate(data);
 
     if (variant === "LOGIN") {
       signIn("credentials", { ...data, redirect: false })
@@ -78,7 +90,9 @@ const AuthForm: React.FC<AuthFormProps> = ({}) => {
   return (
     <>
       <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-gray-300">
-        {variant === "LOGIN" ? "Sign in to your account" : "Create an account"}
+        {variant === "LOGIN"
+          ? "Sign in to Nocrastinate"
+          : "Start saying NO to Procrastination"}
       </h2>
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="rounded-lg bg-white/10 px-4 py-8 shadow sm:px-10">
@@ -110,9 +124,9 @@ const AuthForm: React.FC<AuthFormProps> = ({}) => {
               disabled={isLoading}
             />
             <div>
-              <Button type="submit" disabled={isLoading} fullWidth>
+              <MyButton type="submit" disabled={isLoading} fullWidth>
                 {variant === "LOGIN" ? "Sign In" : "Register"}
-              </Button>
+              </MyButton>
             </div>
           </form>
           {/* Social login. */}

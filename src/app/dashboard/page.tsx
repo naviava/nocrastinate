@@ -6,8 +6,10 @@ interface DashboardPageProps {}
 
 const DashboardPage: React.FC<DashboardPageProps> = ({}) => {
   return (
-    <div className="cursor-pointer" onClick={signOut}>
-      Logout
+    <div>
+      <div className="cursor-pointer" onClick={signOut}>
+        Logout
+      </div>
     </div>
   );
 };
